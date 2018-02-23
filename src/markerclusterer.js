@@ -709,6 +709,38 @@ MarkerClusterer.prototype.repaint = function() {
  */
 MarkerClusterer.prototype.redraw = function() {
   this.createClusters_();
+
+    for(var singlecluster=0; singlecluster < this.clusters_.length; singlecluster++) {
+
+    if(this.clusters_[singlecluster].markers_.length > 1) {
+      this.clusters_[singlecluster].clusterIcon_.height_ = 65;
+      this.clusters_[singlecluster].clusterIcon_.width_ = 66;
+
+      var marker_array_length = this.clusters_[singlecluster].markers_.length;
+      var make_marker_red = false;
+      var make_marker_green = false;
+
+      for(var singlemarker=0; singlemarker < marker_array_length; singlemarker++) {
+
+        if(this.clusters_[singlecluster].markers_[singlemarker].icon.url.indexOf('bad') !== -1) { // found bad icon url
+          make_marker_red = true;
+          break;
+        } else if(this.clusters_[singlecluster].markers_[singlemarker].icon.url.indexOf('good') !== -1) { // found good icon url
+          make_marker_green = true;
+        }
+
+      }
+
+      if(make_marker_red) {
+        this.clusters_[singlecluster].clusterIcon_.url_ = "./img/red.png";
+      } else if(make_marker_green) {
+        this.clusters_[singlecluster].clusterIcon_.url_ = "./img/green.png";
+      } else {
+        this.clusters_[singlecluster].clusterIcon_.url_ = "./img/green.png";
+      }
+
+    }
+  }
 };
 
 
