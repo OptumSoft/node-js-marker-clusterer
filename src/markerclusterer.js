@@ -68,6 +68,7 @@ function MarkerClusterer(map, opt_markers, opt_options) {
   // because it might not always be available when the code is defined so we
   // look for it at the last possible moment. If it doesn't exist now then
   // there is no point going ahead :)
+
   this.extend(MarkerClusterer, google.maps.OverlayView);
   this.map_ = map;
 
@@ -151,6 +152,8 @@ function MarkerClusterer(map, opt_markers, opt_options) {
     this.averageCenter_ = options['averageCenter'];
   }
 
+  this.uniqueMarkers = options['uniqueMarkers'];
+
   this.setupStyles_();
 
   this.setMap(map);
@@ -160,6 +163,8 @@ function MarkerClusterer(map, opt_markers, opt_options) {
    * @private
    */
   this.prevZoom_ = this.map_.getZoom();
+
+
 
   // Add the map event listeners
   var that = this;
@@ -710,35 +715,48 @@ MarkerClusterer.prototype.repaint = function() {
 MarkerClusterer.prototype.redraw = function() {
   this.createClusters_();
 
-    for(var singlecluster=0; singlecluster < this.clusters_.length; singlecluster++) {
+  let clusters = this.clusters_;
+  
+  // Iterate through all the clusters that have been created. The ultimate purpose is to figure out
+  // what icon (red or green) to use on the cluster. Green will be chosen if all the markers inside are green (good status),
+  // and red if any marker inside is red (bad status);
+  for(let cluster=0; cluster < clusters.length; cluster++) {
+    
+    let singleCluster = clusters[cluster];
 
-    if(this.clusters_[singlecluster].markers_.length > 1) {
-      this.clusters_[singlecluster].clusterIcon_.height_ = 65;
-      this.clusters_[singlecluster].clusterIcon_.width_ = 66;
+    // There's more than 1 marker in the cluster
+    if(singleCluster.markers_.length > 1) {
 
-      var marker_array_length = this.clusters_[singlecluster].markers_.length;
-      var make_marker_red = false;
-      var make_marker_green = false;
+      let clusterIcon = singleCluster.clusterIcon_;
 
-      for(var singlemarker=0; singlemarker < marker_array_length; singlemarker++) {
+      let markers = clusters[cluster].markers_;
+      let markerArrLength = markers.length;
+      
+      let makeMarkerRed = false;
 
-        if(this.clusters_[singlecluster].markers_[singlemarker].icon.url.indexOf('bad') !== -1) { // found bad icon url
-          make_marker_red = true;
+      // Iterate through the markers in the cluster and break if there's a red (bad status) marker
+      for(var singlemarker=0; singlemarker < markerArrLength; singlemarker++) {
+        if(markers[singlemarker].typeOfMarker == 'bad') { // found bad marker
+          makeMarkerRed = true;
           break;
-        } else if(this.clusters_[singlecluster].markers_[singlemarker].icon.url.indexOf('good') !== -1) { // found good icon url
-          make_marker_green = true;
         }
-
       }
 
-      if(make_marker_red) {
-        this.clusters_[singlecluster].clusterIcon_.url_ = "./img/red.png";
-      } else if(make_marker_green) {
-        this.clusters_[singlecluster].clusterIcon_.url_ = "./img/green.png";
+      // Set the url of the cluster icon to the correct color. this.uniqueMarkers had a good and bad url.
+      // This data is passed in when the cluster is first instantiated like shown below:
+
+      // new MarkerClusterer(map, markers, {
+         // uniqueMarkers: {
+         //   good: './img/google-map-markers/good_cluster.png',
+         //   bad: './img/google-map-markers/bad_cluster.png'
+         // }, ...
+      // );
+
+      if(makeMarkerRed) {
+          clusterIcon.url_ = this.uniqueMarkers.bad;
       } else {
-        this.clusters_[singlecluster].clusterIcon_.url_ = "./img/green.png";
+          clusterIcon.url_ = this.uniqueMarkers.good;
       }
-
     }
   }
 };
