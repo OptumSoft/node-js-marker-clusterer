@@ -757,6 +757,9 @@ MarkerClusterer.prototype.redraw = function() {
       } else {
           clusterIcon.url_ = this.uniqueMarkers.good;
       }
+
+      // Apply CSS so that above urls go into effect.
+      clusterIcon.show();
     }
   }
 };
