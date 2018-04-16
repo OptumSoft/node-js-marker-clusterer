@@ -708,6 +708,9 @@ MarkerClusterer.prototype.repaint = function() {
   }, 0);
 };
 
+MarkerClusterer.prototype.onClick = function() { 
+    return true; 
+};
 
 /**
  * Redraws the clusters.
@@ -1104,6 +1107,17 @@ ClusterIcon.prototype.triggerClusterClick = function() {
   // Trigger the clusterclick event.
   google.maps.event.trigger(markerClusterer, 'clusterclick', this.cluster_);
 
+  var zoom = markerClusterer.getMap().getZoom();
+  // Trying to pull this dynamically made the more zoomed in clusters not render
+  // when then kind of made this useless. -NNC @ BNB
+  // var maxZoom = mc.getMaxZoom();
+  var maxZoom = 17;
+  // if we have reached the maxZoom and there is more than 1 marker in this cluster
+  // use our onClick method to popup a list of options
+  if (zoom >= maxZoom && this.cluster_.markers_.length > 1) {
+      return markerClusterer.onClick(this.cluster_);
+  }
+
   if (markerClusterer.isZoomOnClick()) {
     // Zoom into the cluster.
     this.map_.fitBounds(this.cluster_.getBounds());
@@ -1118,9 +1132,11 @@ ClusterIcon.prototype.triggerClusterClick = function() {
 ClusterIcon.prototype.onAdd = function() {
   this.div_ = document.createElement('DIV');
   if (this.visible_) {
-    var pos = this.getPosFromLatLng_(this.center_);
-    this.div_.style.cssText = this.createCss(pos);
-    this.div_.innerHTML = this.sums_.text;
+    if(this.center_) {
+      var pos = this.getPosFromLatLng_(this.center_);
+      this.div_.style.cssText = this.createCss(pos);
+      this.div_.innerHTML = this.sums_.text;
+    }
   }
 
   var panes = this.getPanes();
@@ -1153,7 +1169,7 @@ ClusterIcon.prototype.getPosFromLatLng_ = function(latlng) {
  * @ignore
  */
 ClusterIcon.prototype.draw = function() {
-  if (this.visible_) {
+  if (this.visible_ && this.center_) {
     var pos = this.getPosFromLatLng_(this.center_);
     this.div_.style.top = pos.y + 'px';
     this.div_.style.left = pos.x + 'px';
@@ -1176,7 +1192,7 @@ ClusterIcon.prototype.hide = function() {
  * Position and show the icon.
  */
 ClusterIcon.prototype.show = function() {
-  if (this.div_) {
+  if (this.div_ && this.center_) {
     var pos = this.getPosFromLatLng_(this.center_);
     this.div_.style.cssText = this.createCss(pos);
     this.div_.style.display = '';
